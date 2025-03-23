@@ -26,3 +26,11 @@ System Design:
     o Configure system parameters (e.g., ticket pool size, producer/consumer rates).
     o Dynamically add/remove producers, consumers, readers, and writers.
     o Display the ticket pool’s real-time state.
+
+Concurrency Mechanisms:
+• Use multi-threading concepts (Thread, Runnable) to simulate operations.
+• Implement proper exception handling for thread interruptions.
+
+Testing:
+• Test each synchronization technique for correctness, thread safety, and performance.
+• Include scenarios such as empty ticket pools, maximum capacity, and high concurrency.
