@@ -6,6 +6,7 @@ import java.util.Scanner;
 // SimulationManager to manage the entire simulation
 public class SimulationManager {
     private final TicketPool ticketPool;
+    private final int poolCapacity;
     private final Map<String, Thread> producerThreads;
     private final Map<String, Producer> producers;
     private final Map<String, Thread> consumerThreads;
@@ -14,8 +15,10 @@ public class SimulationManager {
     private final Map<String, Reader> readers;
 
     private final Scanner scanner;
+    private SynchronizationMechanism currentMechanism = SynchronizationMechanism.SYNCHRONIZED;
 
     public SimulationManager(int poolCapacity) {
+        this.poolCapacity = poolCapacity;
         this.ticketPool = new TicketPoolManager(poolCapacity);
         this.producerThreads = new HashMap<>();
         this.producers = new HashMap<>();
@@ -103,21 +106,38 @@ public class SimulationManager {
 
     public void switchSynchronizationMechanism(SynchronizationMechanism mechanism) {
         ticketPool.switchSynchronizationMechanism(mechanism);
+        currentMechanism = mechanism;
     }
 
     public void displayTicketPoolState() {
         System.out.println("--------- Ticket Pool State ---------");
+        System.out.println("Current synchronization: " + currentMechanism);
+        System.out.println("Pool capacity: " + poolCapacity);
         System.out.println("Available tickets: " + ticketPool.getAvailableTickets());
         System.out.println("Active producers: " + producers.size());
         System.out.println("Active consumers: " + consumers.size());
         System.out.println("Active readers: " + readers.size());
         System.out.println("------------------------------------");
+
+        // Display a few sample tickets if available
+        int availableTickets = ticketPool.getAvailableTickets();
+        if (availableTickets > 0) {
+            System.out.println("Sample tickets:");
+            for (int i = 0; i < Math.min(3, availableTickets); i++) {
+                System.out.println("- " + ticketPool.viewTicketInfo(i));
+            }
+            if (availableTickets > 3) {
+                System.out.println("- ... and " + (availableTickets - 3) + " more");
+            }
+            System.out.println("------------------------------------");
+        }
     }
 
     public void startCLI() {
         boolean running = true;
 
         System.out.println("Welcome to Ticket System Simulation");
+        System.out.println("Pool capacity: " + poolCapacity);
         System.out.println("Available commands:");
         printHelp();
 

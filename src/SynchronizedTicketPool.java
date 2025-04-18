@@ -15,6 +15,7 @@ class SynchronizedTicketPool implements TicketPool {
     public synchronized boolean addTicket(String ticketInfo) {
         if (tickets.size() < capacity) {
             tickets.add(ticketInfo);
+            notify(); // Notify waiting consumers
             return true;
         }
         return false;
@@ -27,6 +28,7 @@ class SynchronizedTicketPool implements TicketPool {
         }
 
         String ticket = tickets.remove(0);
+        notify(); // Notify waiting producers
         return ticket;
     }
 
@@ -48,3 +50,4 @@ class SynchronizedTicketPool implements TicketPool {
         // Not handled here, managed by TicketPoolManager
     }
 }
+

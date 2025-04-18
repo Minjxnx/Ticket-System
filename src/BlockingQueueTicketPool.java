@@ -15,7 +15,7 @@ class BlockingQueueTicketPool implements TicketPool {
 
     @Override
     public boolean addTicket(String ticketInfo) {
-        return tickets.offer(ticketInfo);
+        return tickets.offer(ticketInfo); // Non-blocking, returns false if full
     }
 
     @Override
@@ -31,9 +31,6 @@ class BlockingQueueTicketPool implements TicketPool {
     @Override
     public String viewTicketInfo(int index) {
         // BlockingQueue doesn't support direct indexing
-        // This is a limitation of using BlockingQueue
-        // For demonstration, we could copy to a list to access by index
-
         List<String> ticketList = new ArrayList<>(tickets);
         if (index >= 0 && index < ticketList.size()) {
             return ticketList.get(index);

@@ -18,16 +18,18 @@ class Producer implements Runnable {
 
         while (running) {
             try {
-                String ticketInfo = "Ticket-" + producerId + "-" + ticketCounter++;
+                String ticketInfo = "Ticket-" + producerId + "-" + ticketCounter;
                 boolean added = ticketPool.addTicket(ticketInfo);
 
                 if (added) {
                     System.out.println(producerId + " produced: " + ticketInfo);
+                    ticketCounter++;
+                    Thread.sleep(delayMs);
                 } else {
-                    System.out.println(producerId + " couldn't produce: Pool full");
+                    // If pool is full, wait a bit before trying again
+                    System.out.println(producerId + ": Pool full, waiting before retry");
+                    Thread.sleep(delayMs * 2); // Wait longer when pool is full
                 }
-
-                Thread.sleep(delayMs);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 stop();
