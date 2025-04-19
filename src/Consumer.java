@@ -12,6 +12,7 @@ class Consumer implements Runnable {
         this.delayMs = delayMs;
     }
 
+    // The main logic of the consumer thread
     @Override
     public void run() {
         while (running) {
@@ -27,6 +28,7 @@ class Consumer implements Runnable {
         }
     }
 
+    // Stops the consumer thread
     public void stop() {
         running = false;
     }
