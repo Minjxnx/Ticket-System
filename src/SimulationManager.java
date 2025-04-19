@@ -17,6 +17,7 @@ public class SimulationManager {
     private final Scanner scanner;
     private SynchronizationMechanism currentMechanism = SynchronizationMechanism.SYNCHRONIZED;
 
+    // Constructor initializes the simulation manager with the given pool capacity
     public SimulationManager(int poolCapacity) {
         this.poolCapacity = poolCapacity;
         this.ticketPool = new TicketPoolManager(poolCapacity);
@@ -29,6 +30,7 @@ public class SimulationManager {
         this.scanner = new Scanner(System.in);
     }
 
+    // Adds a new producer with the given ID and delay
     public void addProducer(String id, int delayMs) {
         Producer producer = new Producer(ticketPool, id, delayMs);
         Thread thread = new Thread(producer);
@@ -40,6 +42,7 @@ public class SimulationManager {
         System.out.println("Producer " + id + " added");
     }
 
+    // Stops and removes a producer with the given ID
     public void removeProducer(String id) {
         if (producers.containsKey(id)) {
             producers.get(id).stop();
@@ -54,6 +57,7 @@ public class SimulationManager {
         }
     }
 
+    // Adds a new consumer with the given ID and delay
     public void addConsumer(String id, int delayMs) {
         Consumer consumer = new Consumer(ticketPool, id, delayMs);
         Thread thread = new Thread(consumer);
@@ -65,6 +69,7 @@ public class SimulationManager {
         System.out.println("Consumer " + id + " added");
     }
 
+    // Stops and removes a consumer with the given ID
     public void removeConsumer(String id) {
         if (consumers.containsKey(id)) {
             consumers.get(id).stop();
@@ -79,6 +84,7 @@ public class SimulationManager {
         }
     }
 
+    // Adds a new reader with the given ID and delay
     public void addReader(String id, int delayMs) {
         Reader reader = new Reader(ticketPool, id, delayMs);
         Thread thread = new Thread(reader);
@@ -90,6 +96,7 @@ public class SimulationManager {
         System.out.println("Reader " + id + " added");
     }
 
+    // Stops and removes a reader with the given ID
     public void removeReader(String id) {
         if (readers.containsKey(id)) {
             readers.get(id).stop();
@@ -104,11 +111,13 @@ public class SimulationManager {
         }
     }
 
+    // Switches the synchronization mechanism used by the ticket pool
     public void switchSynchronizationMechanism(SynchronizationMechanism mechanism) {
         ticketPool.switchSynchronizationMechanism(mechanism);
         currentMechanism = mechanism;
     }
 
+    // Displays the current state of the ticket pool and simulation
     public void displayTicketPoolState() {
         System.out.println("--------- Ticket Pool State ---------");
         System.out.println("Current synchronization: " + currentMechanism);
@@ -133,6 +142,7 @@ public class SimulationManager {
         }
     }
 
+    // Starts the CLI interface for interactive simulation control
     public void startCLI() {
         boolean running = true;
 
@@ -156,6 +166,7 @@ public class SimulationManager {
         shutdownAll();
     }
 
+    // Prints help message with available commands
     private void printHelp() {
         System.out.println("help - Display available commands");
         System.out.println("add-producer <id> <delayMs> - Add a new producer");
@@ -169,6 +180,7 @@ public class SimulationManager {
         System.out.println("exit - Exit the simulation");
     }
 
+    // Processes user input commands
     private void processCommand(String command) {
         String[] parts = command.split("\\s+");
 
@@ -253,6 +265,7 @@ public class SimulationManager {
         }
     }
 
+    // Gracefully stops all running threads and closes scanner
     private void shutdownAll() {
         // Stop all producers
         for (String id : new ArrayList<>(producers.keySet())) {
