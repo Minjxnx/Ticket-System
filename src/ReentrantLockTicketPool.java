@@ -12,15 +12,21 @@ class ReentrantLockTicketPool implements TicketPool {
     private final Condition notEmpty;
     private final Condition notFull;
 
+    /**
+     * Constructs a ticket pool using Reentrant locks with specified capacity.
+     */
     public ReentrantLockTicketPool(int capacity) {
         this.tickets = new ArrayList<>();
         this.capacity = capacity;
         this.lock = new ReentrantReadWriteLock();
-        ReentrantLock writeLock = new ReentrantLock();
+        ReentrantLock writeLock = new ReentrantLock(); // Used only to create dummy conditions (not actually used)
         this.notEmpty = writeLock.newCondition();
         this.notFull = writeLock.newCondition();
     }
 
+    /**
+     * Adds a ticket to the pool if not full.
+     */
     @Override
     public boolean addTicket(String ticketInfo) {
         lock.writeLock().lock();
@@ -35,6 +41,9 @@ class ReentrantLockTicketPool implements TicketPool {
         }
     }
 
+    /**
+     * Continuously checks and waits for ticket availability, and returns the first ticket.
+     */
     @Override
     public String purchaseTicket() throws InterruptedException {
         while (true) {
@@ -47,11 +56,14 @@ class ReentrantLockTicketPool implements TicketPool {
                 lock.writeLock().unlock();
             }
 
-            // If no tickets are available, wait before trying again
+            // Wait a bit before retrying
             Thread.sleep(100);
         }
     }
 
+    /**
+     * Returns the number of available tickets (read lock used).
+     */
     @Override
     public int getAvailableTickets() {
         lock.readLock().lock();
@@ -62,6 +74,9 @@ class ReentrantLockTicketPool implements TicketPool {
         }
     }
 
+    /**
+     * Returns ticket info at the given index (read lock used), or null if invalid.
+     */
     @Override
     public String viewTicketInfo(int index) {
         lock.readLock().lock();
@@ -75,6 +90,9 @@ class ReentrantLockTicketPool implements TicketPool {
         }
     }
 
+    /**
+     * No-op for this implementation; switching is handled by TicketPoolManager.
+     */
     @Override
     public void switchSynchronizationMechanism(SynchronizationMechanism mechanism) {
         // Not handled here, managed by TicketPoolManager
