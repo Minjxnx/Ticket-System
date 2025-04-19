@@ -18,9 +18,15 @@ public class TicketSystemTest {
         comparePerformance();
     }
 
+    /**
+     * Tests the functionality and thread-safety of a specific synchronization mechanism.
+     *
+     * @param mechanism the synchronization mechanism to test
+     */
     private static void testSynchronizationMechanism(SynchronizationMechanism mechanism) throws InterruptedException {
         System.out.println("\n====== Testing " + mechanism + " ======");
 
+        // Create a TicketPoolManager with 100 tickets and set its synchronization strategy
         TicketPoolManager pool = new TicketPoolManager(100);
         pool.switchSynchronizationMechanism(mechanism);
 
@@ -36,12 +42,12 @@ public class TicketSystemTest {
 
         // Test 2: Concurrent operations
         System.out.println("\nTesting concurrent operations:");
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-        CountDownLatch latch = new CountDownLatch(20);
-        AtomicInteger addedCount = new AtomicInteger(0);
-        AtomicInteger purchasedCount = new AtomicInteger(0);
+        ExecutorService executor = Executors.newFixedThreadPool(10); // Thread pool
+        CountDownLatch latch = new CountDownLatch(20); // Waits for all tasks to finish
+        AtomicInteger addedCount = new AtomicInteger(0); // Tracks added tickets
+        AtomicInteger purchasedCount = new AtomicInteger(0); // Tracks purchased tickets
 
-        // Add producers
+        // Submit 10 producer tasks
         for (int i = 0; i < 10; i++) {
             final int producerId = i;
             executor.submit(() -> {
@@ -57,7 +63,7 @@ public class TicketSystemTest {
             });
         }
 
-        // Add consumers
+        // Submit 10 consumer tasks
         for (int i = 0; i < 10; i++) {
             executor.submit(() -> {
                 try {
@@ -77,7 +83,7 @@ public class TicketSystemTest {
             });
         }
 
-        // Wait for all tasks to complete
+        // Wait for all producers and consumers to finish
         latch.await(10, TimeUnit.SECONDS);
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
@@ -86,11 +92,15 @@ public class TicketSystemTest {
         System.out.println("Purchased tickets: " + purchasedCount.get());
         System.out.println("Remaining tickets: " + pool.getAvailableTickets());
 
-        // Verify counts match
+        // Validate correctness of remaining tickets
         boolean isCorrect = (addedCount.get() - purchasedCount.get() == pool.getAvailableTickets());
         System.out.println("Counts match: " + isCorrect);
     }
 
+    /**
+     * Compares the performance of different synchronization mechanisms
+     * by running high-load ticket add/purchase operations.
+     */
     private static void comparePerformance() throws InterruptedException {
         System.out.println("\n====== Performance Comparison ======");
 
@@ -101,25 +111,25 @@ public class TicketSystemTest {
         List<Long> lockTimes = new ArrayList<>();
         List<Long> queueTimes = new ArrayList<>();
 
-        // Run multiple iterations for more accurate comparison
+        // Run three iterations for each mechanism to average out noise
         for (int iter = 0; iter < 3; iter++) {
             System.out.println("\nIteration " + (iter + 1));
 
-            // Test synchronized
+            // Test with 'synchronized'
             TicketPoolManager syncPool = new TicketPoolManager(numThreads * operationsPerThread);
             syncPool.switchSynchronizationMechanism(SynchronizationMechanism.SYNCHRONIZED);
             long syncTime = measurePerformance(syncPool, numThreads, operationsPerThread);
             syncTimes.add(syncTime);
             System.out.println("Synchronized time: " + syncTime + " ms");
 
-            // Test ReentrantLock
+            // Test with 'ReentrantLock'
             TicketPoolManager lockPool = new TicketPoolManager(numThreads * operationsPerThread);
             lockPool.switchSynchronizationMechanism(SynchronizationMechanism.REENTRANT_LOCK);
             long lockTime = measurePerformance(lockPool, numThreads, operationsPerThread);
             lockTimes.add(lockTime);
             System.out.println("ReentrantLock time: " + lockTime + " ms");
 
-            // Test BlockingQueue
+            // Test with 'BlockingQueue'
             TicketPoolManager queuePool = new TicketPoolManager(numThreads * operationsPerThread);
             queuePool.switchSynchronizationMechanism(SynchronizationMechanism.BLOCKING_QUEUE);
             long queueTime = measurePerformance(queuePool, numThreads, operationsPerThread);
@@ -127,7 +137,7 @@ public class TicketSystemTest {
             System.out.println("BlockingQueue time: " + queueTime + " ms");
         }
 
-        // Calculate averages
+        // Calculate average execution time for each mechanism
         double syncAvg = syncTimes.stream().mapToLong(Long::longValue).average().orElse(0);
         double lockAvg = lockTimes.stream().mapToLong(Long::longValue).average().orElse(0);
         double queueAvg = queueTimes.stream().mapToLong(Long::longValue).average().orElse(0);
@@ -137,7 +147,7 @@ public class TicketSystemTest {
         System.out.println("ReentrantLock: " + lockAvg + " ms");
         System.out.println("BlockingQueue: " + queueAvg + " ms");
 
-        // Determine fastest approach
+        // Determine the fastest mechanism
         String fastest = "Synchronized";
         double fastestTime = syncAvg;
 
@@ -153,13 +163,21 @@ public class TicketSystemTest {
         System.out.println("\nFastest approach: " + fastest);
     }
 
+    /**
+     * Measures the time taken to concurrently perform ticket add and purchase operations.
+     *
+     * @param pool                the TicketPool to test
+     * @param numThreads          number of producer and consumer threads
+     * @param operationsPerThread number of operations each thread performs
+     * @return the time taken in milliseconds
+     */
     private static long measurePerformance(TicketPool pool, int numThreads, int operationsPerThread) throws InterruptedException {
         ExecutorService executor = Executors.newFixedThreadPool(numThreads * 2);
         CountDownLatch latch = new CountDownLatch(numThreads * 2);
 
         long startTime = System.currentTimeMillis();
 
-        // Add producer threads
+        // Submit producer tasks
         for (int i = 0; i < numThreads; i++) {
             final int producerId = i;
             executor.submit(() -> {
@@ -173,7 +191,7 @@ public class TicketSystemTest {
             });
         }
 
-        // Add consumer threads
+        // Submit consumer tasks
         for (int i = 0; i < numThreads; i++) {
             executor.submit(() -> {
                 try {
@@ -190,7 +208,7 @@ public class TicketSystemTest {
             });
         }
 
-        // Wait for all operations to complete
+        // Wait for all threads to complete
         latch.await();
         long endTime = System.currentTimeMillis();
 
